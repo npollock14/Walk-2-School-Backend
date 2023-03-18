@@ -29,8 +29,10 @@ async function getClient() {
   return client;
 }
 
+let usersCollection = null;
+
 async function getUsersCollection() {
-  if (!usersCollection || !client.isConnected()) {
+  if (!client.isConnected()) {
     const client = await getClient();
     usersCollection = client.db(DB_NAME).collection(COLLECTION_NAME);
   }

@@ -35,6 +35,8 @@ async function startClient() {
     // console.log("Connected to DB");
   } catch (e) {
     console.error(e);
+    console.error("Failed to connect to DB - shutting down");
+    shutDown();
   }
 }
 
@@ -55,6 +57,9 @@ function hashPassword(password) {
 }
 
 async function authenticate(username, password) {
+  if (!usersCollection) {
+    await startClient();
+  }
   const user = await usersCollection.findOne({ username, password });
 
   return user;
@@ -63,6 +68,9 @@ async function authenticate(username, password) {
 async function createUser(username, password) {
   // make sure the username is unique
   // try to find a user with the same username
+  if (!usersCollection) {
+    await startClient();
+  }
   const existingUser = await usersCollection.findOne({ username });
   if (existingUser) {
     return null;
@@ -150,6 +158,9 @@ app.post("/forgot-password", async (req, res) => {
     return res.status(400).json({ message: "Missing username" });
   }
 
+  if (!usersCollection) {
+    await startClient();
+  }
   const existingUser = await usersCollection.findOne({ username });
   if (!existingUser) {
     return res.status(400).json({ message: "Username does not exist" });
@@ -200,7 +211,9 @@ app.post("/reset-password", async (req, res) => {
       .status(400)
       .json({ message: "Password must be at least 4 characters" });
   }
-
+  if (!usersCollection) {
+    await startClient();
+  }
   const existingUser = await usersCollection.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
@@ -239,7 +252,9 @@ app.get("/reset-password", async (req, res) => {
   if (!token) {
     return res.status(400).json({ message: "Missing token" });
   }
-
+  if (!usersCollection) {
+    await startClient();
+  }
   const existingUser = await usersCollection.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },

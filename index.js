@@ -19,10 +19,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const client = new MongoClient(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const client = new MongoClient(MONGODB_URI);
 
 let usersCollection;
 

@@ -32,7 +32,7 @@ async function startClient() {
     await client.connect();
 
     usersCollection = client.db(DB_NAME).collection(COLLECTION_NAME);
-    console.log("Connected to DB");
+    // console.log("Connected to DB");
   } catch (e) {
     console.error(e);
   }
@@ -48,6 +48,11 @@ function shutDown() {
 }
 
 startClient();
+
+// computes a sha256 hash for the given password
+function hashPassword(password) {
+  return crypto.createHash("sha256").update(password).digest("hex");
+}
 
 async function authenticate(username, password) {
   const user = await usersCollection.findOne({ username, password });
@@ -173,6 +178,7 @@ app.post("/forgot-password", async (req, res) => {
       html: `<p>Click <a href="https://walk-2-school-backend.vercel.app/reset-password?token=${token}">here</a> to reset your password</p>`,
     };
 
+    // console.log(msg);
     sgMail.send(msg);
 
     res.status(200).json({ message: "Email sent" });
@@ -183,10 +189,16 @@ app.post("/forgot-password", async (req, res) => {
 
 // create a reset password route
 app.post("/reset-password", async (req, res) => {
-  const { token, password } = req.body;
+  let { token, password } = req.body;
 
   if (!token || !password) {
     return res.status(400).json({ message: "Missing token or password" });
+  }
+
+  if (password.length < 4) {
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 4 characters" });
   }
 
   const existingUser = await usersCollection.findOne({
@@ -197,6 +209,9 @@ app.post("/reset-password", async (req, res) => {
   if (!existingUser) {
     return res.status(400).json({ message: "Invalid token" });
   }
+
+  // hash the password
+  password = hashPassword(password);
 
   const result = await usersCollection.updateOne(
     existingUser,

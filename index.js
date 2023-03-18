@@ -19,38 +19,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const client = new MongoClient(MONGODB_URI);
-
-async function getClient() {
-  if (!client.isConnected()) {
-    console.log("Client not connected, connecting now...");
-    await client.connect();
-  }
-  return client;
-}
-
-let usersCollection = null;
-
 async function getUsersCollection() {
-  if (!client.isConnected()) {
-    const client = await getClient();
-    usersCollection = client.db(DB_NAME).collection(COLLECTION_NAME);
-  }
-  return usersCollection;
+  const client = await MongoClient.connect(MONGODB_URI);
+  return client.db(DB_NAME).collection(COLLECTION_NAME);
 }
-
-process.on("SIGTERM", shutDown);
-process.on("SIGINT", shutDown);
-
-function shutDown() {
-  console.log("Received kill signal, shutting down gracefully");
-  if (client.isConnected()) {
-    client.close();
-  }
-  process.exit(0);
-}
-
-// startClient();
 
 // computes a sha256 hash for the given password
 function hashPassword(password) {
@@ -58,7 +30,8 @@ function hashPassword(password) {
 }
 
 async function authenticate(username, password) {
-  const user = await getUsersCollection().findOne({ username, password });
+  const usersCollection = await getUsersCollection();
+  const user = usersCollection.findOne({ username, password });
 
   return user;
 }
@@ -66,7 +39,9 @@ async function authenticate(username, password) {
 async function createUser(username, password) {
   // make sure the username is unique
   // try to find a user with the same username
-  const existingUser = await getUsersCollection().findOne({ username });
+  const usersCollection = await getUsersCollection();
+
+  const existingUser = usersCollection.findOne({ username });
   if (existingUser) {
     return null;
   }
@@ -75,7 +50,7 @@ async function createUser(username, password) {
   const newUser = { username, password };
 
   // insert the new user into the database
-  const result = await getUsersCollection().insertOne(newUser);
+  const result = usersCollection.insertOne(newUser);
 
   return result.insertedId;
 }
@@ -153,7 +128,9 @@ app.post("/forgot-password", async (req, res) => {
     return res.status(400).json({ message: "Missing username" });
   }
 
-  const existingUser = await getUsersCollection().findOne({ username });
+  const usersCollection = await getUsersCollection();
+
+  const existingUser = usersCollection.findOne({ username });
   if (!existingUser) {
     return res.status(400).json({ message: "Username does not exist" });
   }
@@ -161,7 +138,7 @@ app.post("/forgot-password", async (req, res) => {
   const token = crypto.randomBytes(20).toString("hex");
   const tokenExpiration = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-  const result = await getUsersCollection().updateOne(
+  const result = usersCollection.updateOne(
     existingUser,
     {
       $set: {
@@ -203,7 +180,10 @@ app.post("/reset-password", async (req, res) => {
       .status(400)
       .json({ message: "Password must be at least 4 characters" });
   }
-  const existingUser = await getUsersCollection().findOne({
+
+  const usersCollection = await getUsersCollection();
+
+  const existingUser = usersCollection.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
   });
@@ -215,7 +195,7 @@ app.post("/reset-password", async (req, res) => {
   // hash the password
   password = hashPassword(password);
 
-  const result = await getUsersCollection().updateOne(
+  const result = await usersCollection.updateOne(
     existingUser,
     {
       $set: {
@@ -241,7 +221,9 @@ app.get("/reset-password", async (req, res) => {
   if (!token) {
     return res.status(400).json({ message: "Missing token" });
   }
-  const existingUser = await getUsersCollection().findOne({
+  const usersCollection = await getUsersCollection();
+
+  const existingUser = usersCollection.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
   });

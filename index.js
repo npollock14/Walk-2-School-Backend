@@ -29,7 +29,7 @@ async function startClient() {
     await client.connect();
 
     usersCollection = client.db(DB_NAME).collection(COLLECTION_NAME);
-    // console.log("Connected to DB");
+    console.log("Connected to DB");
   } catch (e) {
     console.error(e);
     console.error("Failed to connect to DB - shutting down");
@@ -46,7 +46,7 @@ function shutDown() {
   process.exit(0);
 }
 
-startClient();
+// startClient();
 
 // computes a sha256 hash for the given password
 function hashPassword(password) {
@@ -54,9 +54,14 @@ function hashPassword(password) {
 }
 
 async function authenticate(username, password) {
-  if (!usersCollection) {
-    await startClient();
-  }
+  // if (!usersCollection) {
+  //   await startClient();
+  // }
+
+  const authClient = new MongoClient(MONGODB_URI);
+  await authClient.connect();
+  const usersCollection = authClient.db(DB_NAME).collection(COLLECTION_NAME);
+
   const user = await usersCollection.findOne({ username, password });
 
   return user;

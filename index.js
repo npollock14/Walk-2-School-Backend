@@ -158,8 +158,8 @@ app.post("/forgot-password", async (req, res) => {
       html: `<p>Click <a href="https://walk-2-school-backend.vercel.app/reset-password?token=${token}">here</a> to reset your password</p>`,
     };
 
-    console.log(msg);
-    // sgMail.send(msg);
+    // console.log(msg);
+    sgMail.send(msg);
 
     res.status(200).json({ message: "Email sent" });
   } else {

@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const path = require("path");
+const ejs = require("ejs");
 require("dotenv").config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -18,6 +19,9 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 async function getUsersCollection() {
   const client = await MongoClient.connect(MONGODB_URI);
@@ -120,6 +124,22 @@ app.post("/create-account", async (req, res) => {
   }
 });
 
+function renderPasswordResetEmail(passwordResetLink) {
+  return new Promise((resolve, reject) => {
+    ejs.renderFile(
+      "views/reset-password-email.ejs",
+      { passwordResetLink },
+      (err, html) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(html);
+        }
+      }
+    );
+  });
+}
+
 // create a forgot password route
 app.post("/forgot-password", async (req, res) => {
   const { username } = req.body;
@@ -149,18 +169,21 @@ app.post("/forgot-password", async (req, res) => {
     { upsert: true }
   );
 
+  const passwordResetLink = `https://walk-2-school-backend.vercel.app/reset-password?token=${token}`;
+  const emailContent = await renderPasswordResetEmail(passwordResetLink);
+
   if (result.modifiedCount === 1) {
     const msg = {
       to: username,
       from: "walk2schoolteam@gmail.com",
-      subject: "Walk2School Password Reset",
-      text: "Walk2School Password Reset",
-      html: `<p>Click <a href="https://walk-2-school-backend.vercel.app/reset-password?token=${token}">here</a> to reset your password</p>`,
+      subject: "Password Reset - Walk to School",
+      text: passwordResetLink,
+      html: emailContent,
     };
 
     // console.log(msg);
     sentStatus = await sgMail.send(msg);
-    console.log(sentStatus);
+    // console.log(sentStatus);
 
     if (sentStatus[0].statusCode === 202) {
       res.status(200).json({ message: "Email sent" });

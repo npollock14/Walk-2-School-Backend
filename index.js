@@ -31,7 +31,7 @@ function hashPassword(password) {
 
 async function authenticate(username, password) {
   const usersCollection = await getUsersCollection();
-  const user = usersCollection.findOne({ username, password });
+  const user = await usersCollection.findOne({ username, password });
 
   return user;
 }
@@ -41,7 +41,7 @@ async function createUser(username, password) {
   // try to find a user with the same username
   const usersCollection = await getUsersCollection();
 
-  const existingUser = usersCollection.findOne({ username });
+  const existingUser = await usersCollection.findOne({ username });
   if (existingUser) {
     return null;
   }
@@ -50,7 +50,7 @@ async function createUser(username, password) {
   const newUser = { username, password };
 
   // insert the new user into the database
-  const result = usersCollection.insertOne(newUser);
+  const result = await usersCollection.insertOne(newUser);
 
   return result.insertedId;
 }
@@ -130,7 +130,7 @@ app.post("/forgot-password", async (req, res) => {
 
   const usersCollection = await getUsersCollection();
 
-  const existingUser = usersCollection.findOne({ username });
+  const existingUser = await usersCollection.findOne({ username });
   if (!existingUser) {
     return res.status(400).json({ message: "Username does not exist" });
   }
@@ -138,7 +138,7 @@ app.post("/forgot-password", async (req, res) => {
   const token = crypto.randomBytes(20).toString("hex");
   const tokenExpiration = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-  const result = usersCollection.updateOne(
+  const result = await usersCollection.updateOne(
     existingUser,
     {
       $set: {
@@ -158,11 +158,12 @@ app.post("/forgot-password", async (req, res) => {
       html: `<p>Click <a href="https://walk-2-school-backend.vercel.app/reset-password?token=${token}">here</a> to reset your password</p>`,
     };
 
-    // console.log(msg);
-    sgMail.send(msg);
+    console.log(msg);
+    // sgMail.send(msg);
 
     res.status(200).json({ message: "Email sent" });
   } else {
+    console.log(result);
     res.status(400).json({ message: "Error sending email" });
   }
 });
@@ -183,7 +184,7 @@ app.post("/reset-password", async (req, res) => {
 
   const usersCollection = await getUsersCollection();
 
-  const existingUser = usersCollection.findOne({
+  const existingUser = await usersCollection.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
   });
@@ -223,7 +224,7 @@ app.get("/reset-password", async (req, res) => {
   }
   const usersCollection = await getUsersCollection();
 
-  const existingUser = usersCollection.findOne({
+  const existingUser = await usersCollection.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
   });

@@ -159,12 +159,17 @@ app.post("/forgot-password", async (req, res) => {
     };
 
     // console.log(msg);
-    sgMail.send(msg);
+    sentStatus = await sgMail.send(msg);
+    console.log(sentStatus);
 
-    res.status(200).json({ message: "Email sent" });
+    if (sentStatus[0].statusCode === 202) {
+      res.status(200).json({ message: "Email sent" });
+    } else {
+      res.status(400).json({ message: "Error sending email" });
+    }
   } else {
     console.log(result);
-    res.status(400).json({ message: "Error sending email" });
+    res.status(400).json({ message: "Error modifying user" });
   }
 });
 

@@ -23,8 +23,27 @@ app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+let client;
+
+async function connectToMongo() {
+  try {
+    client = await MongoClient.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+    setTimeout(connectToMongo, 5000); // Attempt to reconnect after 5 seconds
+  }
+}
+
+connectToMongo();
+
 async function getUsersCollection() {
-  const client = await MongoClient.connect(MONGODB_URI);
+  if (!client || !client.topology.isConnected()) {
+    await connectToMongo();
+  }
+
   return client.db(DB_NAME).collection(COLLECTION_NAME);
 }
 

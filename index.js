@@ -33,10 +33,43 @@ function hashPassword(password) {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
 
+// authenticate a user using the username and hashed password provided from the client
+// return a session token that can be used to authenticate the user in the future
 async function authenticate(username, password) {
   const usersCollection = await getUsersCollection();
   const user = await usersCollection.findOne({ username, password });
+  if (!user) {
+    return null;
+  }
+  const sessionToken = generateSessionToken();
+  // put the session token in the database
+  // put it in root of the user document under sessionInfo. Also include the expiration date - 7 days from now
+  await usersCollection.updateOne(user, {
+    $set: {
+      sessionInfo: {
+        sessionToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    },
+  });
+  return sessionToken;
+}
 
+// authenticate a user using the username and session token provided from the client
+//make sure that the session token is valid and not expired
+async function authenticateBySessionToken(username, sessionToken) {
+  const usersCollection = await getUsersCollection();
+  const user = await usersCollection.findOne({
+    username,
+    "sessionInfo.sessionToken": sessionToken,
+  });
+  if (!user) {
+    return null;
+  }
+  const sessionInfo = user.sessionInfo;
+  if (sessionInfo.expiresAt < new Date()) {
+    return null;
+  }
   return user;
 }
 
@@ -59,6 +92,10 @@ async function createUser(username, password) {
   return result.insertedId;
 }
 
+function generateSessionToken() {
+  return crypto.randomBytes(20).toString("hex");
+}
+
 // authenticate a user using the username and hashed password provided from the client
 app.post("/authenticate", async (req, res) => {
   const { username, password } = req.body;
@@ -67,10 +104,9 @@ app.post("/authenticate", async (req, res) => {
     return res.status(400).json({ message: "Missing username or password" });
   }
 
-  const user = await authenticate(username, password);
-
-  if (user) {
-    res.status(200).json({ message: "Authenticated" });
+  const sessionToken = await authenticate(username, password);
+  if (sessionToken) {
+    res.status(200).json({ message: "Authenticated", sessionToken });
   } else {
     res.status(401).json({ message: "Invalid credentials" });
   }
@@ -240,6 +276,64 @@ app.post("/reset-password", async (req, res) => {
     res.status(200).json({ message: "Password reset" });
   } else {
     res.status(400).json({ message: "Error resetting password" });
+  }
+});
+
+app.post("/get-data", async (req, res) => {
+  const { username, sessionToken } = req.body;
+
+  if (!username || !sessionToken) {
+    return res
+      .status(400)
+      .json({ message: "Missing username or session token" });
+  }
+
+  const user = await authenticateBySessionToken(username, sessionToken);
+
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "Invalid username or session token" });
+  }
+
+  // now we have a valid user, we can return their data at user.data
+  // if no data exists, we can return an empty object
+  res.status(200).json({ data: user.data || {} });
+});
+
+app.post("/set-data", async (req, res) => {
+  const { username, sessionToken, data } = req.body;
+
+  if (!username || !sessionToken || !data) {
+    return res
+      .status(400)
+      .json({ message: "Missing username, session token, or data" });
+  }
+
+  const user = await authenticateBySessionToken(username, sessionToken);
+
+  if (!user) {
+    return res
+      .status(400)
+      .json({ message: "Invalid username or session token" });
+  }
+
+  const usersCollection = await getUsersCollection();
+
+  const result = await usersCollection.updateOne(
+    user,
+    {
+      $set: {
+        data,
+      },
+    },
+    { upsert: true }
+  );
+
+  if (result.modifiedCount === 1) {
+    res.status(200).json({ message: "Data updated" });
+  } else {
+    res.status(400).json({ message: "Error updating data" });
   }
 });
 

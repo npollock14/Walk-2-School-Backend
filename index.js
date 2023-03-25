@@ -323,10 +323,16 @@ app.post("/get-data", async (req, res) => {
 app.post("/set-data", async (req, res) => {
   const { username, sessionToken, data } = req.body;
 
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    return res.status(400).json({ message: "Invalid data format" });
+  // if data is a string, try to parse it as JSON
+  // if it fails, return an error
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch (e) {
+      console.log(e);
+      console.log(data);
+      return res.status(400).json({ message: "Invalid data format" });
+    }
   }
 
   if (!username || !sessionToken || !data) {

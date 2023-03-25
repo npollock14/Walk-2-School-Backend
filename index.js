@@ -323,6 +323,12 @@ app.post("/get-data", async (req, res) => {
 app.post("/set-data", async (req, res) => {
   const { username, sessionToken, data } = req.body;
 
+  try {
+    data = JSON.parse(data);
+  } catch (e) {
+    return res.status(400).json({ message: "Invalid data format" });
+  }
+
   if (!username || !sessionToken || !data) {
     return res
       .status(400)

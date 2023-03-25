@@ -321,7 +321,7 @@ app.post("/get-data", async (req, res) => {
 });
 
 app.post("/set-data", async (req, res) => {
-  const { username, sessionToken, data } = req.body;
+  let { username, sessionToken, data } = req.body;
 
   // if data is a string, try to parse it as JSON
   // if it fails, return an error

@@ -317,7 +317,12 @@ app.post("/get-data", async (req, res) => {
 
   // now we have a valid user, we can return their data at user.data
   // if no data exists, we can return an empty object
-  res.status(200).json({ data: user.data || {} });
+  // userdata looks like: {data: { "key": "value", ... }}
+  // Just send back the value of the data key, not the whole object
+
+  let data = user.data || {};
+  console.log(data);
+  res.status(200).json(data);
 });
 
 app.post("/set-data", async (req, res) => {

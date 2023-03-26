@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const path = require("path");
 const ejs = require("ejs");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -396,4 +397,35 @@ app.get("/reset-password", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+});
+
+// Create a rate limiter to allow a maximum of 10 requests per minute
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10,
+  message: "Too many requests from this IP, please try again later",
+});
+
+app.get("/leaderboard", limiter, async (req, res) => {
+  try {
+    const usersCollection = await getUsersCollection();
+
+    // Find all users and sort them by their points in descending order
+    const leaderboard = await usersCollection
+      .find()
+      .sort({ "data.currPoints": -1 })
+      .toArray();
+
+    // Create a new array with only the username and points fields
+    const leaderboardData = leaderboard.map((user) => ({
+      username: user.username.split("@")[0],
+      points: !user.data || !user.data.currPoints ? 0 : user.data.currPoints,
+    }));
+
+    // Return the leaderboard data as JSON
+    res.json(leaderboardData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
 });

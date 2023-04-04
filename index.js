@@ -608,22 +608,7 @@ app.post("/add-listing", ensureAdminPrivileges, async (req, res) => {
   }
 });
 
-app.delete("/delete-listing/:name", async (req, res) => {
-  const { sessionToken } = req.body;
-  if (!sessionToken) {
-    return res.status(400).json({ message: "Missing session token" });
-  }
-
-  const user = await authenticateBySessionToken(sessionToken);
-
-  if (!user) {
-    return res.status(400).json({ message: "Invalid session token" });
-  }
-
-  if (user.privileges !== "admin") {
-    return res.status(403).json({ message: "Unauthorized" });
-  }
-
+app.delete("/delete-listing/:name", ensureAdminPrivileges, async (req, res) => {
   try {
     const { name } = req.params;
 
@@ -646,23 +631,11 @@ app.delete("/delete-listing/:name", async (req, res) => {
   }
 });
 
-app.post("/update-listing", async (req, res) => {
-  const { sessionToken, updatedListing } = req.body;
+app.post("/update-listing", ensureAdminPrivileges, async (req, res) => {
+  const { updatedListing } = req.body;
 
-  if (!sessionToken || !updatedListing) {
-    return res
-      .status(400)
-      .json({ message: "Missing session token or updated listing data" });
-  }
-
-  const user = await authenticateBySessionToken(sessionToken);
-
-  if (!user) {
-    return res.status(400).json({ message: "Invalid session token" });
-  }
-
-  if (user.privileges !== "admin") {
-    return res.status(403).json({ message: "Unauthorized" });
+  if (!updatedListing) {
+    return res.status(400).json({ message: "Missing updated listing data" });
   }
 
   try {

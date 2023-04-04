@@ -136,13 +136,14 @@ window.addEventListener("click", (event) => {
 });
 
 const editListingForm = document.getElementById("edit-listing-form");
+const disabledNameField = document.getElementById("edit-name");
 
 editListingForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(editListingForm);
   const updatedListing = {
-    name: formData.get("edit-name"),
+    name: disabledNameField.value,
     price: formData.get("edit-price"),
     url: formData.get("edit-url"),
     quantity: formData.get("edit-quantity"),

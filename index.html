@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Session Check Example</title>
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <script>
+      // This inline script is necessary to run the check as soon as the page is loaded.
+      if (document.readyState === "loading") {
+        document.addEventListener(
+          "DOMContentLoaded",
+          redirectToAppropriatePage
+        );
+      } else {
+        redirectToAppropriatePage();
+      }
+    </script>
+  </body>
+</html>

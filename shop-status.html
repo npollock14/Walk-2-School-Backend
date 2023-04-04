@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop Status</title>
+    <link rel="stylesheet" href="shopStyles.css" />
+    <script src="script.js" defer></script>
+    <script src="shop-status.js" defer></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Shop Status</h1>
+      <p>Number of different listings: <span id="listings-count"></span></p>
+      <button id="create-listing-btn">Create Listing</button>
+      <div id="items-container"></div>
+    </div>
+
+    <!-- Listing template -->
+    <template id="listing-template">
+      <div class="listing">
+        <h2 class="listing-name"></h2>
+        <img class="listing-image" src="" alt="listing image" />
+        <p class="listing-price"></p>
+        <p class="listing-quantity"></p>
+        <p class="listing-description"></p>
+        <p class="listing-visibility"></p>
+        <button class="edit-listing-btn">Edit</button>
+        <button class="delete-listing-btn">Delete</button>
+      </div>
+    </template>
+
+    <!-- Create Listing Modal -->
+    <div id="create-listing-modal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h2>Create Listing</h2>
+        <form id="create-listing-form">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" required />
+          <label for="price">Price:</label>
+          <input type="number" id="price" name="price" step="1" required />
+          <label for="url">Image URL:</label>
+          <input type="url" id="url" name="url" required />
+          <label for="quantity">Quantity:</label>
+          <input type="number" id="quantity" name="quantity" required />
+          <label for="description">Description:</label>
+          <textarea id="description" name="description" required></textarea>
+          <label for="visible">Visible:</label>
+          <input type="checkbox" id="visible" name="visible" />
+          <button type="submit">Create Listing</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Listing Modal -->
+    <div id="edit-listing-modal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h2>Edit Listing</h2>
+        <form id="edit-listing-form">
+          <!-- Add the same form fields as in the create listing form -->
+          <label for="edit-name">Name:</label>
+          <input
+            type="text"
+            id="edit-name"
+            name="edit-name"
+            disabled
+            required
+          />
+          <label for="edit-price">Price:</label>
+          <input
+            type="number"
+            id="edit-price"
+            name="edit-price"
+            step="1"
+            required
+          />
+          <label for="edit-url">Image URL:</label>
+          <input type="url" id="edit-url" name="edit-url" required />
+          <label for="edit-quantity">Quantity:</label>
+          <input
+            type="number"
+            id="edit-quantity"
+            name="edit-quantity"
+            required
+          />
+          <label for="edit-description">Description:</label>
+          <textarea
+            id="edit-description"
+            name="edit-description"
+            required
+          ></textarea>
+          <label for="edit-visible">Visible:</label>
+          <input type="checkbox" id="edit-visible" name="edit-visible" />
+          <button type="submit">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

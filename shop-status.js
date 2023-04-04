@@ -101,6 +101,11 @@ const createListingModal = document.getElementById("create-listing-modal");
 const createListingForm = document.getElementById("create-listing-form");
 const closeModalBtn = document.querySelector(".modal-close");
 const editListingModal = document.getElementById("edit-listing-modal");
+const homeBtn = document.getElementById("home-btn");
+
+homeBtn.addEventListener("click", () => {
+  window.location.href = "/home";
+});
 
 createListingBtn.addEventListener("click", () => {
   createListingModal.style.display = "block";

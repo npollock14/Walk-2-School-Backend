@@ -44,7 +44,7 @@ body {
     display: block;
     width: 100%;
     padding: 8px;
-    margin: 10px;
+    margin-top: 10px;
     background-color: #007BFF;
     color: white;
     font-size: 14px;
@@ -57,8 +57,8 @@ body {
     display: block;
     width: 100%;
     padding: 8px;
-    margin: 10px;
-    background-color: #007BFF;
+    /* margin: 10px; */
+    background-color:  #dc3545;
     color: white;
     font-size: 14px;
     border: none;
@@ -78,7 +78,7 @@ body {
     }
 
     .shop-status-container {
-        max-width: 1200px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 0 15px;
     }

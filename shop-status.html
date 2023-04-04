@@ -12,6 +12,7 @@
     <div class="container">
       <h1>Shop Status</h1>
       <p>Number of different listings: <span id="listings-count"></span></p>
+      <button id="home-btn">Home</button>
       <button id="create-listing-btn">Create Listing</button>
       <div id="items-container"></div>
     </div>
@@ -48,7 +49,7 @@
           <textarea id="description" name="description" required></textarea>
           <label for="visible">Visible:</label>
           <input type="checkbox" id="visible" name="visible" />
-          <button type="submit">Create Listing</button>
+          <button type="submit" id="submit-listing">Create Listing</button>
         </form>
       </div>
     </div>
@@ -93,7 +94,7 @@
           ></textarea>
           <label for="edit-visible">Visible:</label>
           <input type="checkbox" id="edit-visible" name="edit-visible" />
-          <button type="submit">Save Changes</button>
+          <button type="submit" id="submit-save-changes">Save Changes</button>
         </form>
       </div>
     </div>

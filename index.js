@@ -136,6 +136,30 @@ function generateSessionToken() {
   return crypto.randomBytes(20).toString("hex");
 }
 
+const ensureAdminPrivileges = async (req, res, next) => {
+  const { sessionToken } = req.body;
+
+  if (!sessionToken) {
+    return res.status(400).json({ message: "Missing session token" });
+  }
+
+  const user = await authenticateBySessionToken(sessionToken);
+
+  if (!user) {
+    return res.status(400).json({ message: "Invalid session token" });
+  }
+
+  console.log("User privileges:", user.privileges);
+
+  if (user.privileges !== "admin") {
+    return res.status(403).json({ message: "Unauthorized" });
+  }
+
+  // Attach user object to the request for further use in the route handler
+  req.user = user;
+  next();
+};
+
 // authenticate a user using the username and hashed password provided from the client
 app.post("/authenticate", async (req, res) => {
   const { username, password } = req.body;
@@ -544,22 +568,10 @@ app.post("/get-user-info", async (req, res) => {
   });
 });
 
-app.post("/add-listing", async (req, res) => {
-  const { sessionToken, newListing } = req.body;
+app.post("/add-listing", ensureAdminPrivileges, async (req, res) => {
+  const { newListing } = req.body;
   const { name, price, url, quantity, description, visible } = newListing;
-  if (!sessionToken) {
-    return res.status(400).json({ message: "Missing session token" });
-  }
 
-  const user = await authenticateBySessionToken(sessionToken);
-
-  if (!user) {
-    return res.status(400).json({ message: "Invalid session token" });
-  }
-
-  if (user.privileges !== "admin") {
-    return res.status(403).json({ message: "Unauthorized" });
-  }
   try {
     if (!name || !price || !url || !quantity || !description) {
       console.error(

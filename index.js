@@ -25,6 +25,7 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+app.use(express.static(__dirname));
 
 let client;
 
@@ -56,6 +57,14 @@ async function getShopCollection() {
   }
 
   return client.db(DB_NAME).collection("shop");
+}
+
+async function getOrderCollection() {
+  if (!client || !client.topology.isConnected()) {
+    await connectToMongo();
+  }
+
+  return client.db(DB_NAME).collection("orders");
 }
 
 // computes a sha256 hash for the given password
@@ -679,7 +688,111 @@ app.post("/update-listing", ensureAdminPrivileges, async (req, res) => {
   }
 });
 
-// also make sure scripts and css can be loaded
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, req.path));
+app.post("/purchase", async (req, res) => {
+  const { sessionToken, name } = req.body;
+
+  if (!sessionToken || !name) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const user = await authenticateBySessionToken(sessionToken);
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid session token" });
+    }
+
+    const shopCollection = await getShopCollection();
+
+    const orderCollection = await getOrderCollection();
+
+    // get item to make sure that it exists and quantity is > 0
+    const item = await shopCollection.findOne({ name });
+
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    if (!item.visible) {
+      return res.status(400).json({ message: "Item is not visible" });
+    }
+
+    if (item.quantity <= 0) {
+      return res.status(400).json({ message: "Item is out of stock" });
+    }
+
+    if (user.data.currPoints < item.price) {
+      return res.status(400).json({ message: "Not enough points" });
+    }
+
+    // update quantity
+    const result = await shopCollection.updateOne(
+      { name },
+      { $inc: { quantity: -1 } }
+    );
+
+    if (!result.acknowledged) {
+      return res
+        .status(500)
+        .json({ message: "Failed to update item quantity" });
+    }
+
+    // add item to user's inventory and update user's points (user.data.currPoints)
+    const userCollection = await getUsersCollection();
+
+    const userResult = await userCollection.updateOne(
+      { username: user.username, "data.inventory.name": item.name },
+      {
+        $inc: {
+          "data.inventory.$.quantity": 1,
+          "data.currPoints": -item.price,
+        },
+      }
+    );
+
+    if (!userResult.acknowledged || userResult.modifiedCount === 0) {
+      const newUserResult = await userCollection.updateOne(
+        { username: user.username },
+        {
+          $set: {
+            "data.currPoints": user.data.currPoints - item.price,
+          },
+          $push: {
+            "data.inventory": {
+              name: item.name,
+              price: item.price,
+              url: item.url,
+              quantity: 1,
+              description: item.description,
+            },
+          },
+        }
+      );
+
+      if (!newUserResult.acknowledged) {
+        return res.status(500).json({ message: "Failed to update user data" });
+      }
+    }
+
+    // add item to orders collection
+    const orderResult = await orderCollection.insertOne({
+      username: user.username,
+      name: item.name,
+      price: item.price,
+      url: item.url,
+      quantity: 1,
+      description: item.description,
+      fufilled: false,
+      date: new Date(),
+    });
+
+    if (!orderResult.acknowledged) {
+      return res.status(500).json({ message: "Failed to add order" });
+    }
+
+    res.status(200).json({ message: "Purchase successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 });

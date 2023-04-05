@@ -25,17 +25,7 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(
-  express.static(__dirname, {
-    setHeaders: function (res, path, stat) {
-      if (path.endsWith(".js")) {
-        res.setHeader("Content-Type", "application/javascript");
-      } else if (path.endsWith(".css")) {
-        res.setHeader("Content-Type", "text/css");
-      }
-    },
-  })
-);
+app.use(express.static(__dirname));
 
 let client;
 

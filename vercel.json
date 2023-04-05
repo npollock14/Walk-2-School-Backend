@@ -12,25 +12,5 @@
             "src": "/(.*)",
             "dest": "/index.js"
         }
-    ],
-    "headers": [
-        {
-            "source": "/public/(.*)",
-            "headers": [
-                {
-                    "key": "X-Content-Type-Options",
-                    "value": "nosniff"
-                }
-            ]
-        },
-        {
-            "source": "/public/js/(.*).js",
-            "headers": [
-                {
-                    "key": "Content-Type",
-                    "value": "application/javascript"
-                }
-            ]
-        }
     ]
 }

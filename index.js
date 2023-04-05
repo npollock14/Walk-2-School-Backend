@@ -8,6 +8,7 @@ const path = require("path");
 const ejs = require("ejs");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
+const mime = require("mime-types");
 require("dotenv").config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -26,6 +27,13 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(__dirname));
+
+app.get("*.js", (req, res, next) => {
+  req.url = req.url + ".gz";
+  res.set("Content-Encoding", "gzip");
+  res.set("Content-Type", mime.lookup("js"));
+  next();
+});
 
 let client;
 

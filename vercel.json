@@ -12,5 +12,25 @@
             "src": "/(.*)",
             "dest": "/index.js"
         }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                }
+            ]
+        },
+        {
+            "source": "/js/(.*).js",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript"
+                }
+            ]
+        }
     ]
 }

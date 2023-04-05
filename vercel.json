@@ -15,7 +15,7 @@
     ],
     "headers": [
         {
-            "source": "/(.*)",
+            "source": "/public/(.*)",
             "headers": [
                 {
                     "key": "X-Content-Type-Options",
@@ -24,7 +24,7 @@
             ]
         },
         {
-            "source": "/js/(.*).js",
+            "source": "/public/js/(.*).js",
             "headers": [
                 {
                     "key": "Content-Type",

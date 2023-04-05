@@ -26,13 +26,36 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "public")));
 
-app.get("*.js", (req, res, next) => {
-  req.url = req.url + ".gz";
-  res.set("Content-Encoding", "gzip");
-  res.set("Content-Type", mime.lookup("js"));
-  next();
+// deliver index located in /public/index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join("index.html"));
+});
+
+//deliver login.html located in /public/login.html
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/login.html"));
+});
+
+//deliver home.html located in /public/home.html
+app.get("/home", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/home.html"));
+});
+
+//deliver shop-status.html located in /public/shop-status.html
+app.get("/shop-status", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/shop-status.html"));
+});
+
+// *.js is located in public/js/*.js
+app.get(/(.*).js/, (req, res) => {
+  res.sendFile(path.join(__dirname, "public/js", req.params[0] + ".js"));
+});
+
+// do same for css
+app.get(/(.*).css/, (req, res) => {
+  res.sendFile(path.join(__dirname, "public/css", req.params[0] + ".css"));
 });
 
 let client;
@@ -465,7 +488,7 @@ app.get("/reset-password", async (req, res) => {
     return res.status(400).json({ message: "Invalid token" });
   }
 
-  res.sendFile(path.join(__dirname, "reset-password.html"));
+  res.sendFile(path.join(__dirname, "public/reset-password.html"));
 });
 
 app.listen(PORT, () => {

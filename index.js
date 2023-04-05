@@ -610,7 +610,7 @@ app.post("/get-user-info", async (req, res) => {
 
 app.post("/add-listing", ensureAdminPrivileges, async (req, res) => {
   const { newListing } = req.body;
-  const { name, price, url, quantity, description, visible } = newListing;
+  let { name, price, url, quantity, description, visible } = newListing;
 
   try {
     if (!name || !price || !url || !quantity || !description) {
@@ -626,6 +626,10 @@ app.post("/add-listing", ensureAdminPrivileges, async (req, res) => {
     }
 
     const shopCollection = await getShopCollection();
+
+    // parse price and quantity into a number
+    price = parseInt(price);
+    quantity = parseInt(quantity);
 
     const result = await shopCollection.insertOne({
       name,
@@ -679,7 +683,7 @@ app.post("/update-listing", ensureAdminPrivileges, async (req, res) => {
   }
 
   try {
-    const { name, price, url, quantity, description, visible } = updatedListing;
+    let { name, price, url, quantity, description, visible } = updatedListing;
 
     if (!name || !price || !url || !quantity || !description) {
       console.error(
@@ -694,6 +698,10 @@ app.post("/update-listing", ensureAdminPrivileges, async (req, res) => {
     }
 
     const shopCollection = await getShopCollection();
+
+    // parse price and quantity into a number
+    price = parseInt(price);
+    quantity = parseInt(quantity);
 
     const result = await shopCollection.updateOne(
       { name },

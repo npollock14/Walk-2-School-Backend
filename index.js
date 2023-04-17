@@ -803,6 +803,7 @@ app.post("/purchase", async (req, res) => {
               url: item.url,
               quantity: 1,
               description: item.description,
+              fulfilled: false,
             },
           },
         }
@@ -821,7 +822,7 @@ app.post("/purchase", async (req, res) => {
       url: item.url,
       quantity: 1,
       description: item.description,
-      fufilled: false,
+      fulfilled: false,
       date: new Date(),
     });
 

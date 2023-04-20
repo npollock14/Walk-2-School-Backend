@@ -803,7 +803,7 @@ app.post("/purchase", async (req, res) => {
               url: item.url,
               quantity: 1,
               description: item.description,
-              fulfilled: false,
+              fulfilled: 0,
             },
           },
         }

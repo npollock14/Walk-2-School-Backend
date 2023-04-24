@@ -171,7 +171,8 @@ async function displayOrders() {
 
       const statusCell = document.createElement("td");
       statusCell.textContent = order.fulfilled ? "Fulfilled" : "Not fulfilled";
-      statusCell.classList.add(order.fulfilled ? "fulfilled" : "");
+      statusCell.classList.add(order.fulfilled ? "fulfilled" : "not-fulfilled");
+
       row.appendChild(statusCell);
 
       const actionCell = document.createElement("td");

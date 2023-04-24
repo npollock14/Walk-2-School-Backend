@@ -97,7 +97,9 @@
         });
 
         if (response.ok) {
-          return await response.json();
+            let json = await response.json();
+            let orders = json.orders;
+          return orders;
         } else {
           throw new Error("Failed to fetch orders");
         }

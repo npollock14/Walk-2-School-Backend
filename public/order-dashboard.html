@@ -57,6 +57,10 @@
     .fulfilled {
       color: #4CAF50;
     }
+
+    .not-fulfilled {
+      color: #f44336;
+    }
   </style>
 </head>
 <body>
@@ -138,8 +142,17 @@ function getCookie(name) {
 }
 
 async function displayOrders() {
-  const orders = await fetchOrders();
+  let orders = await fetchOrders();
   const ordersTable = document.getElementById("orders");
+
+//   sort orders by date and fulfilled status: new and not fulfilled orders first, then fulfilled orders
+    orders.sort((a, b) => {
+        if (a.fulfilled === b.fulfilled) {
+        return new Date(b.date) - new Date(a.date);
+        } else {
+        return a.fulfilled ? 1 : -1;
+        }
+    }); 
 
   if (orders && orders.length > 0) {
     orders.forEach(order => {

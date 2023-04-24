@@ -48,6 +48,11 @@ app.get("/shop-status", (req, res) => {
   res.sendFile(path.join(__dirname, "public/shop-status.html"));
 });
 
+//deliver order-dashboard.html located in /public/order-dashboard.html
+app.get("/order-dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/order-dashboard.html"));
+});
+
 // *.js is located in public/js/*.js
 app.get(/(.*).js/, (req, res) => {
   res.sendFile(path.join(__dirname, "public/js", req.params[0] + ".js"));

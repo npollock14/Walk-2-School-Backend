@@ -926,12 +926,8 @@ app.post("/fulfill-order", ensureAdminPrivileges, async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    if (order.fulfilled) {
-      return res.status(400).json({ message: "Order already fulfilled" });
-    }
-
     const result = await orderCollection.updateOne(
-      { name, username },
+      { name, username, fulfilled: false },
       { $set: { fulfilled: true } }
     );
 

@@ -98,6 +98,14 @@ async function getOrderCollection() {
   return client.db(DB_NAME).collection("orders");
 }
 
+async function getLiveWalkingDataCollection() {
+  if (!client || !client.topology.isConnected()) {
+    await connectToMongo();
+  }
+
+  return client.db(DB_NAME).collection("live-walking");
+}
+
 // computes a sha256 hash for the given password
 function hashPassword(password) {
   return crypto.createHash("sha256").update(password).digest("hex");
@@ -831,6 +839,56 @@ app.post("/purchase", async (req, res) => {
     }
 
     res.status(200).json({ message: "Purchase successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/walking-heartbeat", async (req, res) => {
+  const { sessionToken } = req.body;
+
+  if (!sessionToken) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const user = await authenticateBySessionToken(sessionToken);
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid session token" });
+    }
+
+    const userCollection = await getUsersCollection();
+
+    const result = await userCollection.updateOne(
+      { username: user.username },
+      { $set: { "data.lastHeartbeat": new Date() } }
+    );
+
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Failed to update user data" });
+    }
+
+    res.status(200).json({ message: "Heartbeat successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+app.get("/get-live-walking", async (req, res) => {
+  try {
+    const userCollection = await getUsersCollection();
+
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+
+    const liveUsers = await userCollection.find({ "data.lastHeartbeat": { $gte: twoMinutesAgo } }).toArray();
+
+    const liveUsernames = liveUsers.map(user => user.username);
+
+    res.status(200).json({ liveUsernames });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

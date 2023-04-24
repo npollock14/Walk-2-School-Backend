@@ -920,7 +920,7 @@ app.post("/fulfill-order", ensureAdminPrivileges, async (req, res) => {
   try {
     const orderCollection = await getOrderCollection();
 
-    const order = await orderCollection.findOne({ name, username });
+    const order = await orderCollection.findOne({ name, username, fulfilled: false });
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });

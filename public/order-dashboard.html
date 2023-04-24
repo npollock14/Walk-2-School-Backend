@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      padding: 1rem;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .fulfill-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      display: inline-block;
+      font-size: 0.9rem;
+      margin: 0.2rem;
+      transition-duration: 0.4s;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+
+    .fulfill-btn:hover {
+      background-color: #45a049;
+    }
+
+    .fulfilled {
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <h1>Order Dashboard</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Description</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="orders">
+    </tbody>
+  </table>
+
+  <script>
+    const sessionToken = getCookie("session");
+
+    if (!sessionToken) {
+      // Redirect to login page if not logged in
+      window.location.href = "/login"; // Replace with the actual login page URL
+    }
+
+    async function fetchOrders() {
+      try {
+        const response = await fetch("/get-orders", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionToken }),
+        });
+
+        if (response.ok) {
+          return await response.json();
+        } else {
+          throw new Error("Failed to fetch orders");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        return null;
+      }
+    }
+
+    async function fulfillOrder(name, username) {
+      try {
+        const response = await fetch("/fulfill-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, username, sessionToken }),
+        });
+
+        if (response.ok) {
+          // Reload the page to show the updated order status
+          window.location.reload();
+        } else {
+          throw new Error("Failed to fulfill order");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+async function displayOrders() {
+  const orders = await fetchOrders();
+  const ordersTable = document.getElementById("orders");
+
+  if (orders && orders.length > 0) {
+    orders.forEach(order => {
+      const row = document.createElement("tr");
+
+      const usernameCell = document.createElement("td");
+      usernameCell.textContent = order.username;
+      row.appendChild(usernameCell);
+
+      const nameCell = document.createElement("td");
+      nameCell.textContent = order.name;
+      row.appendChild(nameCell);
+
+      const priceCell = document.createElement("td");
+      priceCell.textContent = order.price;
+      row.appendChild(priceCell);
+
+      const quantityCell = document.createElement("td");
+      quantityCell.textContent = order.quantity;
+      row.appendChild(quantityCell);
+
+      const descriptionCell = document.createElement("td");
+      descriptionCell.textContent = order.description;
+      row.appendChild(descriptionCell);
+
+      const dateCell = document.createElement("td");
+      dateCell.textContent = new Date(order.date).toLocaleDateString();
+      row.appendChild(dateCell);
+
+      const statusCell = document.createElement("td");
+      statusCell.textContent = order.fulfilled ? "Fulfilled" : "Not fulfilled";
+      statusCell.classList.add(order.fulfilled ? "fulfilled" : "");
+      row.appendChild(statusCell);
+
+      const actionCell = document.createElement("td");
+      if (!order.fulfilled) {
+        const fulfillBtn = document.createElement("button");
+        fulfillBtn.className = "fulfill-btn";
+        fulfillBtn.textContent = "Fulfill";
+        fulfillBtn.addEventListener("click", () => fulfillOrder(order.name, order.username));
+        actionCell.appendChild(fulfillBtn);
+      }
+      row.appendChild(actionCell);
+
+      ordersTable.appendChild(row);
+    });
+  } else {
+    const emptyRow = document.createElement("tr");
+    const emptyCell = document.createElement("td");
+    emptyCell.textContent = "No orders found";
+    emptyCell.colSpan = 8;
+    emptyCell.style.textAlign = "center";
+    emptyRow.appendChild(emptyCell);
+    ordersTable.appendChild(emptyRow);
+  }
+}
+
+displayOrders();
+</script>
+</body>
+</html>

@@ -598,6 +598,10 @@ app.get("/shop-status", (req, res) => {
   res.sendFile(path.join(__dirname, "shop-status.html"));
 });
 
+app.get("/order-dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "order-dashboard.html"));
+});
+
 app.post("/get-user-info", async (req, res) => {
   const { sessionToken } = req.body;
   if (!sessionToken) {
@@ -889,6 +893,68 @@ app.get("/get-live-walking", async (req, res) => {
     const liveUsernames = liveUsers.map(user => user.username);
 
     res.status(200).json({ liveUsernames });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/get-orders", ensureAdminPrivileges, async (req, res) => {
+  try {
+    const orderCollection = await getOrderCollection();
+
+    const orders = await orderCollection.find({}).toArray();
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/fulfill-order", ensureAdminPrivileges, async (req, res) => {
+  // make sure item name is in body
+  const { name, username } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const orderCollection = await getOrderCollection();
+
+    const order = await orderCollection.findOne({ name, username });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.fulfilled) {
+      return res.status(400).json({ message: "Order already fulfilled" });
+    }
+
+    const result = await orderCollection.updateOne(
+      { name, username },
+      { $set: { fulfilled: true } }
+    );
+
+    if (!result.acknowledged) {
+      return res.status(500).json({ message: "Failed to update order" });
+    }
+
+    // now update user's inventory
+    const userCollection = await getUsersCollection();
+
+    const userResult = await userCollection.updateOne(
+      { username, "data.inventory.name": name },
+      { $inc: { "data.inventory.$.fulfilled": 1 } }
+    );
+
+    if (!userResult.acknowledged) {
+      return res.status(500).json({ message: "Failed to update user data" });
+    }
+
+    res.status(200).json({ message: "Order fulfilled" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

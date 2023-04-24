@@ -98,14 +98,6 @@ async function getOrderCollection() {
   return client.db(DB_NAME).collection("orders");
 }
 
-async function getLiveWalkingDataCollection() {
-  if (!client || !client.topology.isConnected()) {
-    await connectToMongo();
-  }
-
-  return client.db(DB_NAME).collection("live-walking");
-}
-
 // computes a sha256 hash for the given password
 function hashPassword(password) {
   return crypto.createHash("sha256").update(password).digest("hex");

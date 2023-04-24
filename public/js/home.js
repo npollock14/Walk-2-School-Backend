@@ -56,6 +56,11 @@ document.getElementById("view-shop-status").addEventListener("click", () => {
   window.location.href = "/shop-status";
 });
 
+document.getElementById("view-orders").addEventListener("click", () => {
+  // Redirect to orders page
+  window.location.href = "/order-dashboard";
+});
+
 document.getElementById("logout").addEventListener("click", () => {
   // Delete the session cookie
   document.cookie = `session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;

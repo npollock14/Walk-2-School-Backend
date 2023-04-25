@@ -1,47 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home Page</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="script.js" defer></script>
-    <script src="home.js" defer></script>
-    <style>
-      #admin-actions {
-        display: none;
-      }
-      #non-admin-content {
-        display: none;
-      }
-      #loading {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Home Page</h1>
-      <div id="admin-actions">
-        <h2>Admin Actions</h2>
-        <button id="view-shop-status">View Shop Status</button>
-        <button id="view-orders">View Orders</button>
-        <button id="view-users">View Live Dashboard</button>
-      </div>
-      <div id="non-admin-content">
-        <p>
-          Sorry, there are no actions for non admin users available at the
-          moment.
-        </p>
-      </div>
-      <div id="loading">
-        <p>Loading...</p>
-      </div>
 
-      <!-- logout -->
-      <div class="logout">
-        <button id="logout">Logout</button>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Page</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+  <script src="home.js" defer></script>
+  <style>
+    #admin-actions {
+      display: none;
+    }
+
+    #non-admin-content {
+      display: none;
+    }
+
+    #loading {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="logo">
+      <img id="logo" src="assets\images\Logo.png" alt="">
+      <img id="text" src="assets\images\Text.png" alt="">
     </div>
-  </body>
+
+
+
+    <h1>Home Page</h1>
+    <div id="admin-actions">
+      <h2>Admin Actions</h2>
+      <button id="view-shop-status">View Shop Status</button>
+      <button id="view-orders">View Orders</button>
+      <button id="view-users">View Live Dashboard</button>
+    </div>
+    <div id="non-admin-content">
+      <p>
+        Sorry, there are no actions for non admin users available at the
+        moment.
+      </p>
+    </div>
+    <div id="loading">
+      <p>Loading...</p>
+    </div>
+
+    <!-- logout -->
+    <div class="logout">
+      <button id="logout">Logout</button>
+    </div>
+  </div>
+</body>
+
 </html>

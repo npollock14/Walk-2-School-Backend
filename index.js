@@ -46,6 +46,10 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public/login.html"));
 });
 
+app.get("/delete-account", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/delete-account.html"));
+});
+
 //deliver home.html located in /public/home.html
 app.get("/home", (req, res) => {
   res.sendFile(path.join(__dirname, "public/home.html"));

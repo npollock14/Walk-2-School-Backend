@@ -9,6 +9,7 @@ const ejs = require("ejs");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const mime = require("mime-types");
+const prometheusMiddleware = require('express-prometheus-middleware');
 require("dotenv").config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -27,6 +28,13 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
+
+// Set up Prometheus middleware for collecting metrics
+app.use(prometheusMiddleware({
+  metricsPath: '/metrics',
+  collectDefaultMetrics: true,
+  requestDurationBuckets: [0.1, 0.5, 1, 1.5],
+}));
 
 // deliver index located in /public/index.html
 app.get("/", (req, res) => {
@@ -204,6 +212,8 @@ const ensureAdminPrivileges = async (req, res, next) => {
   req.user = user;
   next();
 };
+
+app.use('/metrics', ensureAdminPrivileges);
 
 // authenticate a user using the username and hashed password provided from the client
 app.post("/authenticate", async (req, res) => {
@@ -847,9 +857,9 @@ app.post("/purchase", async (req, res) => {
 });
 
 app.post("/walking-heartbeat", async (req, res) => {
-  const { sessionToken } = req.body;
+  const { sessionToken, latitude, longitude } = req.body;
 
-  if (!sessionToken) {
+  if (!sessionToken || !latitude || !longitude) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
@@ -864,7 +874,7 @@ app.post("/walking-heartbeat", async (req, res) => {
 
     const result = await userCollection.updateOne(
       { username: user.username },
-      { $set: { "data.lastHeartbeat": new Date() } }
+      { $set: { "data.lastHeartbeat": new Date(), "data.lastPos.lat": latitude, "data.lastPos.long": longitude } }
     );
 
     if (!result.acknowledged) {

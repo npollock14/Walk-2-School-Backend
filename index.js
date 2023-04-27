@@ -895,16 +895,30 @@ app.get("/get-live-walking", async (req, res) => {
 
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
 
-    const liveUsers = await userCollection.find({ "data.lastHeartbeat": { $gte: twoMinutesAgo } }).toArray();
+    // send back response in format { username, isWalking }
 
-    const liveUsernames = liveUsers.map(user => user.username);
+    // get all users
+    const users = await userCollection.find({}).toArray();
 
-    res.status(200).json({ liveUsernames });
+    let response = [];
+
+    response = users.map((user) => {
+      const isWalking = user.data.lastHeartbeat > twoMinutesAgo;
+
+      return {
+        username: user.username,
+        isWalking,
+      };
+    });
+
+    res.status(200).json({ response });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+    
 
 app.post("/get-orders", ensureAdminPrivileges, async (req, res) => {
   try {

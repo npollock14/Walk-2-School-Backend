@@ -779,7 +779,7 @@ app.post("/purchase", async (req, res) => {
       return res.status(400).json({ message: "Item is out of stock" });
     }
 
-    if (user.data.currPoints < item.price) {
+    if (!user.data || user.data.currPoints < item.price) {
       return res.status(400).json({ message: "Not enough points" });
     }
 

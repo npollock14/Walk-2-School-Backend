@@ -903,7 +903,13 @@ app.get("/get-live-walking", async (req, res) => {
     let response = [];
 
     response = users.map((user) => {
-      const isWalking = user.data.lastHeartbeat ? user.data.lastHeartbeat > twoMinutesAgo : false;
+      if (!user.data || !user.data.lastHeartbeat) {
+        return {
+          username: user.username,
+          isWalking: false,
+        };
+      }
+      const isWalking = user.data.lastHeartbeat > twoMinutesAgo;
 
       return {
         username: user.username,

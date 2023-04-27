@@ -874,7 +874,7 @@ app.post("/walking-heartbeat", async (req, res) => {
 
     const result = await userCollection.updateOne(
       { username: user.username },
-      { $set: { "data.lastHeartbeat": new Date(), "data.lastPos.lat": latitude, "data.lastPos.long": longitude } }
+      { $set: { "lastHeartbeat": new Date(), "lastPos.lat": latitude, "lastPos.long": longitude } }
     );
 
     if (!result.acknowledged) {
@@ -903,13 +903,13 @@ app.get("/get-live-walking", async (req, res) => {
     let response = [];
 
     response = users.map((user) => {
-      if (!user.data || !user.data.lastHeartbeat) {
+      if (!user || !user.lastHeartbeat) {
         return {
           username: user.username,
           isWalking: false,
         };
       }
-      const isWalking = user.data.lastHeartbeat > twoMinutesAgo;
+      const isWalking = user.lastHeartbeat > twoMinutesAgo;
 
       return {
         username: user.username,

@@ -998,10 +998,8 @@ app.get("/getLocations", async (req, res) => {
 
     const locations = users.map((user) => {
       if (!user || !user.lastPos) {
-        return {
-          username: user.username,
-          location: { lat: -1, long: -1}
-        };
+        // skip
+        return;
       }
 
       return {
@@ -1014,7 +1012,10 @@ app.get("/getLocations", async (req, res) => {
 
     });
 
-    res.status(200).json(locations);
+    // trim undefined and null values
+    const filteredLocations = locations.filter((location) => location);
+
+    res.status(200).json(filteredLocations);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

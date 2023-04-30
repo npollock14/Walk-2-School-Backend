@@ -12,16 +12,37 @@
       margin: 0;
       padding: 0;
     }
+
+    .username-label {
+      font-size: 12px;
+      font-weight: bold;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
   </style>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap"></script>
   <script>
     let map;
+    let markers = [];
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: { lat: 32.91175, lng: 35.2818 },
     zoom: 16,
   });
+
+  fetchLocations();
+
+  // Fetch locations every 15 seconds
+  setInterval(fetchLocations, 15000);
+
+  function fetchLocations() {
+    // Clear all markers
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+
 
   fetch('/getLocations')
     .then(response => response.json())
@@ -32,12 +53,30 @@ function initMap() {
         
         const marker = new google.maps.Marker({
           position: new google.maps.LatLng(location.location.lat, location.location.long),
-          title: location.username,
-          label: location.username,
+          label: location.username[0].toUpperCase(),
           map,
+        });
+
+        markers.push(marker);
+
+         // Create an InfoWindow for each marker
+         const infoWindow = new google.maps.InfoWindow({
+          content: `<div class="username-label">${location.username}</div>`,
+          pixelOffset: new google.maps.Size(0, 0), // Adjust the position to prevent overlap
+        });
+
+        // Add a mouseover event listener to display the InfoWindow
+        marker.addListener('mouseover', () => {
+          infoWindow.open(map, marker);
+        });
+
+        // Add a mouseout event listener to hide the InfoWindow
+        marker.addListener('mouseout', () => {
+          infoWindow.close();
         });
       });
     });
+  }
 }
 
   </script>

@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Dashboard</title>
   <style>
+    @import url(https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800,900);
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: Montserrat, sans-serif;
+      font-size: 20;
       margin: 0;
       padding: 0;
     }
@@ -16,15 +20,28 @@
     }
 
     table {
+      resize: both;
+      overflow: auto;
       border-collapse: collapse;
-      width: 100%;
+      width: 90%;
+      /* width: 100%; */
       margin: 1rem;
     }
 
-    th, td {
+    th,
+    td {
       text-align: left;
       padding: 1rem;
       border-bottom: 1px solid #ddd;
+    }
+
+    #leading-edge {
+      border-radius: 20px 0 0 0;
+
+    }
+
+    #following-edge {
+      border-radius: 0 20px 0 0;
     }
 
     th {
@@ -36,7 +53,8 @@
     }
 
     .fulfill-btn {
-      background-color: #4CAF50;
+      font-family: Montserrat, sans-serif;
+      background-color: #687a3e;
       color: white;
       padding: 0.5rem 1rem;
       border: none;
@@ -47,7 +65,7 @@
       margin: 0.2rem;
       transition-duration: 0.4s;
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: 20px;
     }
 
     .fulfill-btn:hover {
@@ -63,19 +81,20 @@
     }
   </style>
 </head>
+
 <body>
   <h1>Order Dashboard</h1>
   <table>
     <thead>
       <tr>
-        <th>Username</th>
+        <th id="leading-edge">Username</th>
         <th>Name</th>
         <th>Price</th>
         <th>Quantity</th>
         <th>Description</th>
         <th>Date</th>
         <th>Status</th>
-        <th>Action</th>
+        <th id="following-edge">Action</th>
       </tr>
     </thead>
     <tbody id="orders">
@@ -101,8 +120,8 @@
         });
 
         if (response.ok) {
-            let json = await response.json();
-            let orders = json.orders;
+          let json = await response.json();
+          let orders = json.orders;
           return orders;
         } else {
           throw new Error("Failed to fetch orders");
@@ -134,84 +153,85 @@
       }
     }
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-  return null;
-}
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+      return null;
+    }
 
-async function displayOrders() {
-  let orders = await fetchOrders();
-  const ordersTable = document.getElementById("orders");
+    async function displayOrders() {
+      let orders = await fetchOrders();
+      const ordersTable = document.getElementById("orders");
 
-//   sort orders by date and fulfilled status: new and not fulfilled orders first, then fulfilled orders
-    orders.sort((a, b) => {
+      //   sort orders by date and fulfilled status: new and not fulfilled orders first, then fulfilled orders
+      orders.sort((a, b) => {
         if (a.fulfilled === b.fulfilled) {
-        return new Date(b.date) - new Date(a.date);
+          return new Date(b.date) - new Date(a.date);
         } else {
-        return a.fulfilled ? 1 : -1;
+          return a.fulfilled ? 1 : -1;
         }
-    }); 
+      });
 
-  if (orders && orders.length > 0) {
-    orders.forEach(order => {
-      const row = document.createElement("tr");
+      if (orders && orders.length > 0) {
+        orders.forEach(order => {
+          const row = document.createElement("tr");
 
-      const usernameCell = document.createElement("td");
-      usernameCell.textContent = order.username;
-      row.appendChild(usernameCell);
+          const usernameCell = document.createElement("td");
+          usernameCell.textContent = order.username;
+          row.appendChild(usernameCell);
 
-      const nameCell = document.createElement("td");
-      nameCell.textContent = order.name;
-      row.appendChild(nameCell);
+          const nameCell = document.createElement("td");
+          nameCell.textContent = order.name;
+          row.appendChild(nameCell);
 
-      const priceCell = document.createElement("td");
-      priceCell.textContent = order.price;
-      row.appendChild(priceCell);
+          const priceCell = document.createElement("td");
+          priceCell.textContent = order.price;
+          row.appendChild(priceCell);
 
-      const quantityCell = document.createElement("td");
-      quantityCell.textContent = order.quantity;
-      row.appendChild(quantityCell);
+          const quantityCell = document.createElement("td");
+          quantityCell.textContent = order.quantity;
+          row.appendChild(quantityCell);
 
-      const descriptionCell = document.createElement("td");
-      descriptionCell.textContent = order.description;
-      row.appendChild(descriptionCell);
+          const descriptionCell = document.createElement("td");
+          descriptionCell.textContent = order.description;
+          row.appendChild(descriptionCell);
 
-      const dateCell = document.createElement("td");
-      dateCell.textContent = new Date(order.date).toLocaleDateString();
-      row.appendChild(dateCell);
+          const dateCell = document.createElement("td");
+          dateCell.textContent = new Date(order.date).toLocaleDateString();
+          row.appendChild(dateCell);
 
-      const statusCell = document.createElement("td");
-      statusCell.textContent = order.fulfilled ? "Fulfilled" : "Not fulfilled";
-      statusCell.classList.add(order.fulfilled ? "fulfilled" : "not-fulfilled");
+          const statusCell = document.createElement("td");
+          statusCell.textContent = order.fulfilled ? "Fulfilled" : "Not fulfilled";
+          statusCell.classList.add(order.fulfilled ? "fulfilled" : "not-fulfilled");
 
-      row.appendChild(statusCell);
+          row.appendChild(statusCell);
 
-      const actionCell = document.createElement("td");
-      if (!order.fulfilled) {
-        const fulfillBtn = document.createElement("button");
-        fulfillBtn.className = "fulfill-btn";
-        fulfillBtn.textContent = "Fulfill";
-        fulfillBtn.addEventListener("click", () => fulfillOrder(order.name, order.username));
-        actionCell.appendChild(fulfillBtn);
+          const actionCell = document.createElement("td");
+          if (!order.fulfilled) {
+            const fulfillBtn = document.createElement("button");
+            fulfillBtn.className = "fulfill-btn";
+            fulfillBtn.textContent = "Fulfill";
+            fulfillBtn.addEventListener("click", () => fulfillOrder(order.name, order.username));
+            actionCell.appendChild(fulfillBtn);
+          }
+          row.appendChild(actionCell);
+
+          ordersTable.appendChild(row);
+        });
+      } else {
+        const emptyRow = document.createElement("tr");
+        const emptyCell = document.createElement("td");
+        emptyCell.textContent = "No orders found";
+        emptyCell.colSpan = 8;
+        emptyCell.style.textAlign = "center";
+        emptyRow.appendChild(emptyCell);
+        ordersTable.appendChild(emptyRow);
       }
-      row.appendChild(actionCell);
+    }
 
-      ordersTable.appendChild(row);
-    });
-  } else {
-    const emptyRow = document.createElement("tr");
-    const emptyCell = document.createElement("td");
-    emptyCell.textContent = "No orders found";
-    emptyCell.colSpan = 8;
-    emptyCell.style.textAlign = "center";
-    emptyRow.appendChild(emptyCell);
-    ordersTable.appendChild(emptyRow);
-  }
-}
-
-displayOrders();
-</script>
+    displayOrders();
+  </script>
 </body>
+
 </html>

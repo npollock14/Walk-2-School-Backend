@@ -11,6 +11,12 @@ body {
   margin: 0;
 }
 
+.top-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .logo {
   display: flex;
   flex-direction: column;

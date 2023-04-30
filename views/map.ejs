@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Map with Pins</title>
+  <style>
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    body, html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap"></script>
+  <script>
+    let map;
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 32.91175, lng: 35.2818 },
+    zoom: 16,
+  });
+
+  fetch('/getLocations')
+    .then(response => response.json())
+    .then(locations => {
+      locations.forEach(location => {
+        if(!location.location.lat || !location.location.long) return; 
+        if(location.location.lat == -1 || location.location.long == -1) return;
+        
+        const marker = new google.maps.Marker({
+          position: new google.maps.LatLng(location.location.lat, location.location.long),
+          title: location.username,
+          label: location.username,
+          map,
+        });
+      });
+    });
+}
+
+  </script>
+</head>
+<body>
+  <div id="map"></div>
+</body>
+</html>

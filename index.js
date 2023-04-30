@@ -65,6 +65,8 @@ app.get("/order-dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "public/order-dashboard.html"));
 });
 
+
+
 // *.js is located in public/js/*.js
 app.get(/(.*).js/, (req, res) => {
   res.sendFile(path.join(__dirname, "public/js", req.params[0] + ".js"));
@@ -986,4 +988,41 @@ app.post("/fulfill-order", ensureAdminPrivileges, async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+app.get("/getLocations", async (req, res) => {
+  try {
+    const userCollection = await getUsersCollection();
+
+    const users = await userCollection.find({}).toArray();
+
+    const locations = users.map((user) => {
+      if (!user || !user.lastPos) {
+        return {
+          username: user.username,
+          location: { lat: -1, long: -1}
+        };
+      }
+
+      return {
+        username: user.username,
+        location: {
+          lat: user.lastPos.lat,
+          long: user.lastPos.long,
+        }
+      };
+
+    });
+
+    res.status(200).json(locations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+
+  }
+});
+
+
+app.get("/map", (req, res) => {
+  res.render('map', { apiKey: process.env.GOOGLE_API_KEY });
 });
